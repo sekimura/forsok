@@ -58,7 +58,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(*listen, c))
 }
 
-func chainWrapper(fn func(string, http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+func chainWrapper(fn func(string, http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		i := r.Context().Value(contextKeyChainIndex).(int)
 		idx := 2 + i*2 // skip 2 (current key-value pair) and "i" number of pairs
@@ -75,7 +75,7 @@ func chainWrapper(fn func(string, http.ResponseWriter, *http.Request)) func(http
 	}
 }
 
-func statusHandler() func(http.ResponseWriter, *http.Request) {
+func statusHandler() http.HandlerFunc {
 	return chainWrapper(func(s string, w http.ResponseWriter, r *http.Request) {
 		statusCode, err := strconv.Atoi(s)
 		if err != nil {
@@ -87,7 +87,7 @@ func statusHandler() func(http.ResponseWriter, *http.Request) {
 	})
 }
 
-func delayHandler() func(http.ResponseWriter, *http.Request) {
+func delayHandler() http.HandlerFunc {
 	return chainWrapper(func(s string, w http.ResponseWriter, r *http.Request) {
 		sleep, err := strconv.ParseInt(s, 10, 0) // to get int64
 		if err != nil {
